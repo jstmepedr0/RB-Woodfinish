@@ -13,6 +13,20 @@ export async function getUser(): Promise<Profile | null> {
     .eq('id', user.id)
     .single()
 
+  // Profile não existe (utilizador criado antes do trigger) — criar automaticamente
+  if (!profile) {
+    const nome = user.user_metadata?.nome ?? user.email ?? 'Utilizador'
+    const role = user.user_metadata?.role ?? 'comercial'
+
+    const { data: newProfile } = await supabase
+      .from('profiles')
+      .insert({ id: user.id, nome, email: user.email!, role })
+      .select('*')
+      .single()
+
+    return newProfile
+  }
+
   return profile
 }
 
