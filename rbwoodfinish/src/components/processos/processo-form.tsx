@@ -64,8 +64,8 @@ export function ProcessoForm({
 
   const isEdit = !!processo
 
-  function handleClienteChange(value: string) {
-    setClienteId(value)
+  function handleClienteChange(value: string | null) {
+    setClienteId(value ?? undefined)
     setMoradaId(undefined)
     setShowNovaMorada(false)
   }
@@ -148,7 +148,7 @@ export function ProcessoForm({
 
               <Select
                 value={moradaId}
-                onValueChange={(value) => setMoradaId(value)}
+                onValueChange={(value) => setMoradaId(value ?? undefined)}
                 disabled={!clienteId}
               >
                 <SelectTrigger>
