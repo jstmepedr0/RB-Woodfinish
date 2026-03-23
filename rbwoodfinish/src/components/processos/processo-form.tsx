@@ -227,6 +227,7 @@ export function ProcessoForm({
             <Button
               type="submit"
               disabled={isPending || savingMorada || !clienteId || !moradaId}
+              className="w-full sm:w-auto"
             >
               {isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               {isEdit ? 'Guardar Alterações' : 'Criar Processo'}

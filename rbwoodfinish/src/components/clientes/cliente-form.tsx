@@ -173,7 +173,7 @@ export function ClienteForm({ cliente }: ClienteFormProps) {
 
           {!isEdit && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <Label>Moradas de Obra (opcional)</Label>
                 <Button
                   type="button"
@@ -216,7 +216,7 @@ export function ClienteForm({ cliente }: ClienteFormProps) {
           )}
 
           <div className="flex justify-end gap-2">
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
               {isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : null}

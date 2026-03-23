@@ -57,7 +57,7 @@ export function FeedOcorrencias({ processoId, ocorrencias }: FeedOcorrenciasProp
         <CardTitle className="text-base font-semibold">Feed de Ocorrências</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <form onSubmit={handleSubmit} className="flex gap-2">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
           <Textarea
             value={nota}
             onChange={(e) => setNota(e.target.value)}
@@ -69,13 +69,14 @@ export function FeedOcorrencias({ processoId, ocorrencias }: FeedOcorrenciasProp
             type="submit"
             size="sm"
             disabled={isPending || !nota.trim()}
-            className="self-end"
+            className="self-end w-full sm:w-auto"
           >
             {isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="h-4 w-4 mr-2" />
             )}
+            Enviar
           </Button>
         </form>
 
