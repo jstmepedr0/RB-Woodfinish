@@ -12,19 +12,24 @@ export async function criarMoradaObra(formData: FormData) {
   const morada = formData.get('morada') as string
   const descricao = (formData.get('descricao') as string) || null
 
-  const { error } = await supabase.from('moradas_obra').insert({
-    cliente_id: clienteId,
-    morada,
-    descricao,
-  })
+  const { data, error } = await supabase
+    .from('moradas_obra')
+    .insert({
+      cliente_id: clienteId,
+      morada,
+      descricao,
+    })
+    .select('*')
+    .single()
 
   if (error) throw new Error(error.message)
 
   revalidatePath(`/clientes/${clienteId}`)
+  return data
 }
 
 export async function eliminarMoradaObra(id: string, clienteId: string) {
-  await requireRole(['admin'])
+  await requireRole(['admin', 'comercial'])
   const supabase = await createClient()
 
   const { error } = await supabase.from('moradas_obra').delete().eq('id', id)

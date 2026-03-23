@@ -10,13 +10,16 @@ export async function criarCliente(formData: FormData) {
   const supabase = await createClient()
 
   const data = {
+    data_registo: (formData.get('data_registo') as string) || new Date().toISOString().slice(0, 10),
     tipo: formData.get('tipo') as string,
     nome: formData.get('nome') as string,
+    responsavel: (formData.get('responsavel') as string) || null,
     nif: (formData.get('nif') as string) || null,
     contacto_telefone: (formData.get('contacto_telefone') as string) || null,
     email: (formData.get('email') as string) || null,
     morada_sede: (formData.get('morada_sede') as string) || null,
     notas: (formData.get('notas') as string) || null,
+    notas_obra: (formData.get('notas_obra') as string) || null,
     comercial_responsavel_id: profile.id,
   }
 
@@ -57,13 +60,16 @@ export async function atualizarCliente(id: string, formData: FormData) {
   const supabase = await createClient()
 
   const data = {
+    data_registo: (formData.get('data_registo') as string) || new Date().toISOString().slice(0, 10),
     tipo: formData.get('tipo') as string,
     nome: formData.get('nome') as string,
+    responsavel: (formData.get('responsavel') as string) || null,
     nif: (formData.get('nif') as string) || null,
     contacto_telefone: (formData.get('contacto_telefone') as string) || null,
     email: (formData.get('email') as string) || null,
     morada_sede: (formData.get('morada_sede') as string) || null,
     notas: (formData.get('notas') as string) || null,
+    notas_obra: (formData.get('notas_obra') as string) || null,
   }
 
   const { error } = await supabase

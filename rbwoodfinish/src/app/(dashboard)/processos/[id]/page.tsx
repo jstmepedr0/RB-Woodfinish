@@ -8,11 +8,27 @@ import { FeedOcorrencias } from '@/components/processos/feed-ocorrencias'
 import { EstadoBadge } from '@/components/processos/estado-badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { Trash2, User, MapPin, Calendar } from 'lucide-react'
+import { Pencil, User, MapPin, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { EstadoProcesso, Documento, Ocorrencia } from '@/lib/types/database'
 import { DeleteProcessoButton } from '@/components/processos/delete-processo-button'
+
+function getStoragePathFromUrl(url: string) {
+  try {
+    const parsed = new URL(url)
+    const markers = ['/object/public/documentos/', '/object/sign/documentos/']
+
+    for (const marker of markers) {
+      if (parsed.pathname.includes(marker)) {
+        return decodeURIComponent(parsed.pathname.split(marker)[1] ?? '')
+      }
+    }
+
+    return decodeURIComponent((parsed.pathname.split('/documentos/')[1] ?? '').split('?')[0] ?? '')
+  } catch {
+    return decodeURIComponent((url.split('/documentos/')[1] ?? '').split('?')[0] ?? '')
+  }
+}
 
 export default async function ProcessoDetalhePage({
   params,
@@ -27,7 +43,7 @@ export default async function ProcessoDetalhePage({
 
   const [
     { data: processo },
-    { data: documentos },
+    { data: documentosRaw },
     { data: ocorrencias },
   ] = await Promise.all([
     supabase
@@ -49,7 +65,24 @@ export default async function ProcessoDetalhePage({
 
   if (!processo) notFound()
 
+  const documentos = await Promise.all(
+    ((documentosRaw as Documento[] | null) ?? []).map(async (documento) => {
+      const storagePath = getStoragePathFromUrl(documento.url_ficheiro)
+      if (!storagePath) return documento
+
+      const { data } = await supabase.storage
+        .from('documentos')
+        .createSignedUrl(storagePath, 60 * 60)
+
+      return {
+        ...documento,
+        url_ficheiro: data?.signedUrl ?? documento.url_ficheiro,
+      }
+    })
+  )
+
   const canEditState = ['admin', 'comercial'].includes(profile.role)
+  const canEditProcess = ['admin', 'comercial'].includes(profile.role)
   const isAdmin = profile.role === 'admin'
 
   const cliente = processo.cliente as unknown as { id: string; nome: string } | null
@@ -61,11 +94,19 @@ export default async function ProcessoDetalhePage({
       <Header
         title={`Processo #${id.slice(0, 8)}`}
         description={cliente?.nome ?? 'Sem cliente'}
-        actions={
-          isAdmin ? (
-            <DeleteProcessoButton processoId={id} />
-          ) : undefined
-        }
+        actions={(
+          <>
+            {canEditProcess && (
+              <Link href={`/processos/${id}/editar`}>
+                <Button variant="outline" size="sm">
+                  <Pencil className="h-4 w-4 mr-1" />
+                  Editar
+                </Button>
+              </Link>
+            )}
+            {isAdmin && <DeleteProcessoButton processoId={id} />}
+          </>
+        )}
       />
 
       <div className="mb-6">
@@ -150,7 +191,7 @@ export default async function ProcessoDetalhePage({
 
           <PastasDigitais
             processoId={id}
-            documentos={(documentos as Documento[]) ?? []}
+            documentos={documentos}
             canUpload={true}
             canDelete={isAdmin}
           />

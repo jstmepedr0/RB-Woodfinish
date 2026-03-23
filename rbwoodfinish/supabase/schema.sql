@@ -64,13 +64,16 @@ create or replace trigger on_auth_user_created
 -- ============================================================
 create table public.clientes (
   id uuid primary key default uuid_generate_v4(),
+  data_registo date not null default current_date,
   tipo text not null check (tipo in ('casual_b2c', 'profissional_b2b')),
   nome text not null,
+  responsavel text,
   nif text,
   contacto_telefone text,
   email text,
   morada_sede text,
   notas text,
+  notas_obra text,
   comercial_responsavel_id uuid references public.profiles(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -165,13 +168,13 @@ create policy "Comercial e Admin podem atualizar moradas"
     )
   );
 
-create policy "Admin pode apagar moradas"
+create policy "Comercial e Admin podem apagar moradas"
   on public.moradas_obra for delete
   to authenticated
   using (
     exists (
       select 1 from public.profiles
-      where id = auth.uid() and role = 'admin'
+      where id = auth.uid() and role in ('admin', 'comercial')
     )
   );
 

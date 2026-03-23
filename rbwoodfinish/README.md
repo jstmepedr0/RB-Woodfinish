@@ -14,7 +14,7 @@ Sistema web de gestão completa do ciclo de vida de encomendas para empresa de c
 ## Fase 1 — Fundação (MVP)
 
 - Autenticação com login, roles e proteção de rotas
-- CRUD de Clientes (Casual B2C / Profissional B2B)
+- CRUD de Clientes (Casual B2C / Profissional B2B) com data, responsável e notas de obra
 - CRUD de Processos com moradas de obra
 - Sistema de 10 Pastas Digitais com upload de documentos
 - Estado Global do Processo com transição visual entre fases
@@ -27,7 +27,8 @@ Sistema web de gestão completa do ciclo de vida de encomendas para empresa de c
 
 1. Criar projeto em [supabase.com](https://supabase.com)
 2. Executar o schema SQL em `supabase/schema.sql` no SQL Editor do Supabase
-3. Copiar `.env.local` e preencher com as credenciais:
+3. Se a base de dados já existir, aplicar também `supabase/migrations/20260323_close_phase1.sql`
+4. Copiar `.env.local` e preencher com as credenciais:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
@@ -83,8 +84,8 @@ supabase/
 
 | Role | Acesso |
 |------|--------|
-| `admin` | Acesso total |
+| `admin` | Acesso total + dashboard |
 | `comercial` | Clientes, Processos, Documentos |
-| `armazem` | Processos (leitura), Dashboard |
-| `producao` | Processos (leitura), Dashboard |
-| `instalacao` | Processos (leitura), Dashboard |
+| `armazem` | Processos (leitura) |
+| `producao` | Processos (leitura) |
+| `instalacao` | Processos (leitura) |

@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Pencil, FolderPlus, Phone, Mail, MapPin, FileText } from 'lucide-react'
 import Link from 'next/link'
-import { Cliente, MoradaObra } from '@/lib/types/database'
+import { MoradaObra } from '@/lib/types/database'
+import { DeleteClienteButton } from '@/components/clientes/delete-cliente-button'
 
 export default async function ClienteDetalhePage({
   params,
@@ -31,6 +32,7 @@ export default async function ClienteDetalhePage({
   if (!cliente) notFound()
 
   const canEdit = ['admin', 'comercial'].includes(profile.role)
+  const isAdmin = profile.role === 'admin'
 
   return (
     <>
@@ -55,6 +57,7 @@ export default async function ClienteDetalhePage({
                 </Link>
               </>
             )}
+            {isAdmin && <DeleteClienteButton clienteId={id} />}
           </div>
         }
       />
@@ -68,9 +71,21 @@ export default async function ClienteDetalhePage({
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
+                  <p className="text-xs text-stone-500 uppercase tracking-wider">Data</p>
+                  <p className="text-sm font-medium">
+                    {new Date(cliente.data_registo).toLocaleDateString('pt-PT')}
+                  </p>
+                </div>
+                <div className="space-y-1">
                   <p className="text-xs text-stone-500 uppercase tracking-wider">Tipo</p>
                   <Badge variant="secondary">{TIPO_CLIENTE_LABEL[cliente.tipo]}</Badge>
                 </div>
+                {cliente.responsavel && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-stone-500 uppercase tracking-wider">Responsável</p>
+                    <p className="text-sm font-medium">{cliente.responsavel}</p>
+                  </div>
+                )}
                 {cliente.nif && (
                   <div className="space-y-1">
                     <p className="text-xs text-stone-500 uppercase tracking-wider">NIF</p>
@@ -111,6 +126,12 @@ export default async function ClienteDetalhePage({
                   <div className="space-y-1 sm:col-span-2">
                     <p className="text-xs text-stone-500 uppercase tracking-wider">Notas</p>
                     <p className="text-sm text-stone-700">{cliente.notas}</p>
+                  </div>
+                )}
+                {cliente.notas_obra && (
+                  <div className="space-y-1 sm:col-span-2">
+                    <p className="text-xs text-stone-500 uppercase tracking-wider">Notas de Obra</p>
+                    <p className="text-sm text-stone-700 whitespace-pre-line">{cliente.notas_obra}</p>
                   </div>
                 )}
               </div>

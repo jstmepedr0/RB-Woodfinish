@@ -2,7 +2,14 @@ import { createClient } from '@/lib/supabase/server'
 import { getUser } from '@/lib/supabase/auth'
 import { redirect } from 'next/navigation'
 import { Header } from '@/components/layout/header'
-import { ProcessoNovoForm } from '@/components/processos/processo-novo-form'
+import { ProcessoForm } from '@/components/processos/processo-form'
+
+interface MoradaOption {
+  id: string
+  cliente_id: string
+  morada: string
+  descricao: string | null
+}
 
 export default async function NovoProcessoPage({
   searchParams,
@@ -21,22 +28,26 @@ export default async function NovoProcessoPage({
     .select('id, nome')
     .order('nome')
 
-  let moradas: { id: string; morada: string; descricao: string | null }[] = []
-  if (cliente_id) {
-    const { data } = await supabase
-      .from('moradas_obra')
-      .select('id, morada, descricao')
-      .eq('cliente_id', cliente_id)
-      .order('created_at', { ascending: false })
-    moradas = data ?? []
-  }
+  const { data: moradas } = await supabase
+    .from('moradas_obra')
+    .select('id, cliente_id, morada, descricao')
+    .order('created_at', { ascending: false })
+
+  const moradasPorCliente = (moradas ?? []).reduce<Record<string, MoradaOption[]>>(
+    (acc, morada) => {
+      if (!acc[morada.cliente_id]) acc[morada.cliente_id] = []
+      acc[morada.cliente_id].push(morada)
+      return acc
+    },
+    {}
+  )
 
   return (
     <>
       <Header title="Novo Processo" description="Criar novo processo / obra" />
-      <ProcessoNovoForm
+      <ProcessoForm
         clientes={clientes ?? []}
-        moradas={moradas}
+        moradasPorCliente={moradasPorCliente}
         clienteIdInicial={cliente_id ?? null}
       />
     </>

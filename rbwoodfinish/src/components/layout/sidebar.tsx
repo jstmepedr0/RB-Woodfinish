@@ -24,7 +24,7 @@ const NAV_ITEMS = [
     label: 'Dashboard',
     href: '/',
     icon: LayoutDashboard,
-    roles: ['admin', 'comercial', 'armazem', 'producao', 'instalacao'],
+    roles: ['admin'],
   },
   {
     label: 'Clientes',

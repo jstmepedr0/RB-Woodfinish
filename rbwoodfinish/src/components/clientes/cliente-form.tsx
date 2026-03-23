@@ -63,6 +63,17 @@ export function ClienteForm({ cliente }: ClienteFormProps) {
         <form action={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
+              <Label htmlFor="data_registo">Data</Label>
+              <Input
+                id="data_registo"
+                name="data_registo"
+                type="date"
+                required
+                defaultValue={cliente?.data_registo ?? new Date().toISOString().slice(0, 10)}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="tipo">Tipo de Cliente</Label>
               <Select name="tipo" defaultValue={cliente?.tipo ?? 'casual_b2c'}>
                 <SelectTrigger>
@@ -83,6 +94,16 @@ export function ClienteForm({ cliente }: ClienteFormProps) {
                 required
                 defaultValue={cliente?.nome ?? ''}
                 placeholder="Nome completo ou razão social"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="responsavel">Cliente / Responsável</Label>
+              <Input
+                id="responsavel"
+                name="responsavel"
+                defaultValue={cliente?.responsavel ?? ''}
+                placeholder="Pessoa de contacto principal"
               />
             </div>
 
@@ -136,6 +157,17 @@ export function ClienteForm({ cliente }: ClienteFormProps) {
               defaultValue={cliente?.notas ?? ''}
               placeholder="Notas adicionais sobre o cliente..."
               rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notas_obra">Notas de Obra + Descrição</Label>
+            <Textarea
+              id="notas_obra"
+              name="notas_obra"
+              defaultValue={cliente?.notas_obra ?? ''}
+              placeholder="Apontamentos de obra, divisões, medições ou descrição livre..."
+              rows={4}
             />
           </div>
 

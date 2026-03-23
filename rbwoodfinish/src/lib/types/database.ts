@@ -41,13 +41,16 @@ export interface Profile {
 
 export interface Cliente {
   id: string
+  data_registo: string
   tipo: TipoCliente
   nome: string
+  responsavel: string | null
   nif: string | null
   contacto_telefone: string | null
   email: string | null
   morada_sede: string | null
   notas: string | null
+  notas_obra: string | null
   comercial_responsavel_id: string | null
   comercial_responsavel?: Profile
   created_at: string

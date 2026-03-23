@@ -14,6 +14,9 @@ export async function criarProcesso(formData: FormData) {
   const moradaObraId = (formData.get('morada_obra_id') as string) || null
   const notas = (formData.get('notas') as string) || null
 
+  if (!clienteId) throw new Error('Cliente obrigatório')
+  if (!moradaObraId) throw new Error('Morada de obra obrigatória')
+
   const { data: processo, error } = await supabase
     .from('processos')
     .insert({
@@ -79,12 +82,16 @@ export async function atualizarProcesso(id: string, formData: FormData) {
   await requireRole(['admin', 'comercial'])
   const supabase = await createClient()
 
+  const clienteId = formData.get('cliente_id') as string
   const moradaObraId = (formData.get('morada_obra_id') as string) || null
   const notas = (formData.get('notas') as string) || null
 
+  if (!clienteId) throw new Error('Cliente obrigatório')
+  if (!moradaObraId) throw new Error('Morada de obra obrigatória')
+
   const { error } = await supabase
     .from('processos')
-    .update({ morada_obra_id: moradaObraId, notas })
+    .update({ cliente_id: clienteId, morada_obra_id: moradaObraId, notas })
     .eq('id', id)
 
   if (error) throw new Error(error.message)

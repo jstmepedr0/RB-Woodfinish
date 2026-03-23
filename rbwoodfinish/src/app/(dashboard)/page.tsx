@@ -12,6 +12,7 @@ import { EstadoProcesso } from '@/lib/types/database'
 export default async function DashboardPage() {
   const profile = await getUser()
   if (!profile) redirect('/login')
+  if (profile.role !== 'admin') redirect('/processos')
 
   const supabase = await createClient()
 
