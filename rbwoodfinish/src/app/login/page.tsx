@@ -1,6 +1,14 @@
 import { LoginForm } from '@/components/auth/login-form'
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>
+}) {
+  const { error } = await searchParams
+  const initialError =
+    error === 'auth' ? 'Falha ao concluir a autenticação.' : null
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100">
       <div className="w-full max-w-md px-4">
@@ -12,7 +20,7 @@ export default function LoginPage() {
             Sistema de Gestão de Workflow
           </p>
         </div>
-        <LoginForm />
+        <LoginForm initialError={initialError} />
       </div>
     </div>
   )
