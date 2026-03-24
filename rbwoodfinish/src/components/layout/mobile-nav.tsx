@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Profile } from '@/lib/types/database'
@@ -59,7 +60,16 @@ export function MobileNav({ profile }: MobileNavProps) {
   return (
     <>
       <header className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 h-14 bg-white border-b border-stone-200">
-        <span className="text-base font-bold text-stone-900 tracking-tight">RB Woodfinish</span>
+        <div className="flex items-center gap-2">
+          <Image
+            src="/logo.png"
+            alt="RB Woodfinish"
+            width={32}
+            height={32}
+            className="shrink-0"
+          />
+          <span className="text-base font-bold text-stone-900 tracking-tight">RB Woodfinish</span>
+        </div>
         <button
           onClick={() => setOpen(true)}
           className="p-2 rounded-md text-stone-600 hover:bg-stone-100"
@@ -83,9 +93,18 @@ export function MobileNav({ profile }: MobileNavProps) {
         )}
       >
         <div className="flex items-center justify-between p-5 border-b border-stone-200">
-          <div>
-            <h2 className="text-lg font-bold text-stone-900 tracking-tight">RB Woodfinish</h2>
-            <p className="text-xs text-stone-500 mt-0.5">Gestão de Workflow</p>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/logo.png"
+              alt="RB Woodfinish"
+              width={40}
+              height={40}
+              className="shrink-0"
+            />
+            <div>
+              <h2 className="text-base font-bold text-stone-900 tracking-tight">RB Woodfinish</h2>
+              <p className="text-xs text-stone-500 mt-0.5">Gestão de Workflow</p>
+            </div>
           </div>
           <button
             onClick={() => setOpen(false)}

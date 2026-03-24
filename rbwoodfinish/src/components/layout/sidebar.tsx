@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Profile } from '@/lib/types/database'
@@ -56,10 +57,21 @@ export function Sidebar({ profile }: SidebarProps) {
   return (
     <aside className="w-60 border-r border-stone-200 bg-white flex flex-col h-full">
       <div className="p-5">
-        <h2 className="text-lg font-bold text-stone-900 tracking-tight">
-          RB Woodfinish
-        </h2>
-        <p className="text-xs text-stone-500 mt-0.5">Gestão de Workflow</p>
+        <div className="flex items-center gap-3">
+          <Image
+            src="/logo.png"
+            alt="RB Woodfinish"
+            width={40}
+            height={40}
+            className="shrink-0"
+          />
+          <div>
+            <h2 className="text-base font-bold text-stone-900 tracking-tight">
+              RB Woodfinish
+            </h2>
+            <p className="text-xs text-stone-500">Gestão de Workflow</p>
+          </div>
+        </div>
       </div>
 
       <Separator />
