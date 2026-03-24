@@ -19,8 +19,9 @@ export default async function LoginPage({
               src="/logo.png"
               alt="RB Woodfinish"
               width={80}
-              height={80}
+              height={0}
               priority
+              className="h-auto"
             />
           </div>
           <h1 className="text-3xl font-bold text-stone-900 tracking-tight">

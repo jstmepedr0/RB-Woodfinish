@@ -65,8 +65,8 @@ export function MobileNav({ profile }: MobileNavProps) {
             src="/logo.png"
             alt="RB Woodfinish"
             width={32}
-            height={32}
-            className="shrink-0"
+            height={0}
+            className="shrink-0 h-auto"
           />
           <span className="text-base font-bold text-stone-900 tracking-tight">RB Woodfinish</span>
         </div>
@@ -98,8 +98,8 @@ export function MobileNav({ profile }: MobileNavProps) {
               src="/logo.png"
               alt="RB Woodfinish"
               width={40}
-              height={40}
-              className="shrink-0"
+              height={0}
+              className="shrink-0 h-auto"
             />
             <div>
               <h2 className="text-base font-bold text-stone-900 tracking-tight">RB Woodfinish</h2>

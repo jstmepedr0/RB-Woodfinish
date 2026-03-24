@@ -62,8 +62,8 @@ export function Sidebar({ profile }: SidebarProps) {
             src="/logo.png"
             alt="RB Woodfinish"
             width={40}
-            height={40}
-            className="shrink-0"
+            height={0}
+            className="shrink-0 h-auto"
           />
           <div>
             <h2 className="text-base font-bold text-stone-900 tracking-tight">
