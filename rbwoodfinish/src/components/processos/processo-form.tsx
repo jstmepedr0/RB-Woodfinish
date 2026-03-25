@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { criarMoradaObra } from '@/lib/actions/moradas'
 import { atualizarProcesso, criarProcesso } from '@/lib/actions/processos'
 import { Button } from '@/components/ui/button'
@@ -47,6 +48,7 @@ export function ProcessoForm({
   clienteIdInicial,
   processo,
 }: ProcessoFormProps) {
+  const router = useRouter()
   const [clienteId, setClienteId] = useState<string | undefined>(
     processo?.cliente_id ?? clienteIdInicial ?? undefined
   )
@@ -59,6 +61,7 @@ export function ProcessoForm({
   const [savingMorada, startSavingMorada] = useTransition()
   const [isPending, startTransition] = useTransition()
   const [moradasState, setMoradasState] = useState(moradasPorCliente)
+  const [error, setError] = useState<string | null>(null)
 
   const moradas = clienteId ? moradasState[clienteId] ?? [] : []
 
@@ -70,17 +73,26 @@ export function ProcessoForm({
     setShowNovaMorada(false)
   }
 
-  function handleSubmit(formData: FormData) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+
+    const formData = new FormData(e.currentTarget)
     if (clienteId) formData.set('cliente_id', clienteId)
     if (moradaId) formData.set('morada_obra_id', moradaId)
 
-    startTransition(() => {
-      if (isEdit && processo) {
-        atualizarProcesso(processo.id, formData)
+    startTransition(async () => {
+      const result = isEdit && processo
+        ? await atualizarProcesso(processo.id, formData)
+        : await criarProcesso(formData)
+
+      if (!result.success || !result.id) {
+        setError(result.error ?? 'Não foi possível guardar o processo.')
         return
       }
 
-      criarProcesso(formData)
+      router.push(`/processos/${result.id}`)
+      router.refresh()
     })
   }
 
@@ -110,7 +122,7 @@ export function ProcessoForm({
   return (
     <Card>
       <CardContent className="pt-6">
-        <form action={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <input type="hidden" name="cliente_id" value={clienteId ?? ''} />
           {moradaId && <input type="hidden" name="morada_obra_id" value={moradaId} />}
 
@@ -222,6 +234,10 @@ export function ProcessoForm({
               rows={3}
             />
           </div>
+
+          {error && (
+            <p className="text-sm text-destructive">{error}</p>
+          )}
 
           <div className="flex justify-end">
             <Button

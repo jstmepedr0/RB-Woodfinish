@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,24 +23,38 @@ interface ClienteFormProps {
 }
 
 export function ClienteForm({ cliente }: ClienteFormProps) {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [moradas, setMoradas] = useState<{ morada: string; descricao: string }[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [tipo, setTipo] = useState<'casual_b2c' | 'profissional_b2b'>(
+    cliente?.tipo ?? 'casual_b2c'
+  )
   const isEdit = !!cliente
 
-  function handleSubmit(formData: FormData) {
-    // Adicionar moradas ao formData
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+
+    const formData = new FormData(e.currentTarget)
     moradas.forEach((m, idx) => {
       formData.append(`morada_${idx}`, m.morada)
       formData.append(`morada_desc_${idx}`, m.descricao)
     })
     formData.append('moradas_count', moradas.length.toString())
 
-    startTransition(() => {
-      if (isEdit) {
-        atualizarCliente(cliente.id, formData)
-      } else {
-        criarCliente(formData)
+    startTransition(async () => {
+      const result = isEdit
+        ? await atualizarCliente(cliente.id, formData)
+        : await criarCliente(formData)
+
+      if (!result.success || !result.id) {
+        setError(result.error ?? 'Não foi possível guardar o cliente.')
+        return
       }
+
+      router.push(`/clientes/${result.id}`)
+      router.refresh()
     })
   }
 
@@ -60,7 +75,7 @@ export function ClienteForm({ cliente }: ClienteFormProps) {
   return (
     <Card>
       <CardContent className="pt-6">
-        <form action={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="data_registo">Data</Label>
@@ -75,7 +90,8 @@ export function ClienteForm({ cliente }: ClienteFormProps) {
 
             <div className="space-y-2">
               <Label htmlFor="tipo">Tipo de Cliente</Label>
-              <Select name="tipo" defaultValue={cliente?.tipo ?? 'casual_b2c'}>
+              <input type="hidden" name="tipo" value={tipo} />
+              <Select value={tipo} onValueChange={(value) => setTipo((value as typeof tipo) ?? 'casual_b2c')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -97,15 +113,20 @@ export function ClienteForm({ cliente }: ClienteFormProps) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="responsavel">Cliente / Responsável</Label>
-              <Input
-                id="responsavel"
-                name="responsavel"
-                defaultValue={cliente?.responsavel ?? ''}
-                placeholder="Pessoa de contacto principal"
-              />
-            </div>
+            {tipo === 'profissional_b2b' ? (
+              <div className="space-y-2">
+                <Label htmlFor="responsavel">Responsável</Label>
+                <Input
+                  id="responsavel"
+                  name="responsavel"
+                  required
+                  defaultValue={cliente?.responsavel ?? ''}
+                  placeholder="Nome do responsável da empresa/obra"
+                />
+              </div>
+            ) : (
+              <input type="hidden" name="responsavel" value="" />
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="nif">NIF</Label>
@@ -166,7 +187,7 @@ export function ClienteForm({ cliente }: ClienteFormProps) {
               id="notas_obra"
               name="notas_obra"
               defaultValue={cliente?.notas_obra ?? ''}
-              placeholder="Apontamentos de obra, divisões, medições ou descrição livre..."
+              placeholder="Descrição da obra, contexto, divisões, medições ou observações relevantes..."
               rows={4}
             />
           </div>
@@ -213,6 +234,10 @@ export function ClienteForm({ cliente }: ClienteFormProps) {
                 </div>
               ))}
             </div>
+          )}
+
+          {error && (
+            <p className="text-sm text-destructive">{error}</p>
           )}
 
           <div className="flex justify-end gap-2">

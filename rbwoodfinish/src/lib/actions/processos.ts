@@ -6,41 +6,61 @@ import { createClient } from '@/lib/supabase/server'
 import { requireRole, requireUser } from '@/lib/supabase/auth'
 import { EstadoProcesso } from '@/lib/types/database'
 
+export interface ProcessoActionResult {
+  success: boolean
+  id?: string
+  error?: string
+}
+
 export async function criarProcesso(formData: FormData) {
-  const profile = await requireRole(['admin', 'comercial'])
-  const supabase = await createClient()
+  try {
+    const profile = await requireRole(['admin', 'comercial'])
+    const supabase = await createClient()
 
-  const clienteId = formData.get('cliente_id') as string
-  const moradaObraId = (formData.get('morada_obra_id') as string) || null
-  const notas = (formData.get('notas') as string) || null
+    const clienteId = formData.get('cliente_id') as string
+    const moradaObraId = (formData.get('morada_obra_id') as string) || null
+    const notas = (formData.get('notas') as string) || null
 
-  if (!clienteId) throw new Error('Cliente obrigatório')
-  if (!moradaObraId) throw new Error('Morada de obra obrigatória')
+    if (!clienteId) {
+      return { success: false, error: 'Cliente obrigatório' } satisfies ProcessoActionResult
+    }
+    if (!moradaObraId) {
+      return { success: false, error: 'Morada de obra obrigatória' } satisfies ProcessoActionResult
+    }
 
-  const { data: processo, error } = await supabase
-    .from('processos')
-    .insert({
-      cliente_id: clienteId,
-      morada_obra_id: moradaObraId,
-      comercial_id: profile.id,
-      notas,
-      estado_global: 'contacto',
+    const { data: processo, error } = await supabase
+      .from('processos')
+      .insert({
+        cliente_id: clienteId,
+        morada_obra_id: moradaObraId,
+        comercial_id: profile.id,
+        notas,
+        estado_global: 'contacto',
+      })
+      .select()
+      .single()
+
+    if (error) return { success: false, error: error.message } satisfies ProcessoActionResult
+
+    const { error: ocorrenciaError } = await supabase.from('ocorrencias').insert({
+      processo_id: processo.id,
+      utilizador_id: profile.id,
+      tipo: 'estado_mudou',
+      conteudo: 'Processo criado — Estado: Contacto Inicial',
     })
-    .select()
-    .single()
 
-  if (error) throw new Error(error.message)
+    if (ocorrenciaError) {
+      return { success: false, error: ocorrenciaError.message } satisfies ProcessoActionResult
+    }
 
-  // Criar ocorrência inicial
-  await supabase.from('ocorrencias').insert({
-    processo_id: processo.id,
-    utilizador_id: profile.id,
-    tipo: 'estado_mudou',
-    conteudo: 'Processo criado — Estado: Contacto Inicial',
-  })
-
-  revalidatePath('/processos')
-  redirect(`/processos/${processo.id}`)
+    revalidatePath('/processos')
+    return { success: true, id: processo.id } satisfies ProcessoActionResult
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erro ao criar processo',
+    } satisfies ProcessoActionResult
+  }
 }
 
 export async function atualizarEstadoProcesso(
@@ -79,25 +99,37 @@ export async function atualizarEstadoProcesso(
 }
 
 export async function atualizarProcesso(id: string, formData: FormData) {
-  await requireRole(['admin', 'comercial'])
-  const supabase = await createClient()
+  try {
+    await requireRole(['admin', 'comercial'])
+    const supabase = await createClient()
 
-  const clienteId = formData.get('cliente_id') as string
-  const moradaObraId = (formData.get('morada_obra_id') as string) || null
-  const notas = (formData.get('notas') as string) || null
+    const clienteId = formData.get('cliente_id') as string
+    const moradaObraId = (formData.get('morada_obra_id') as string) || null
+    const notas = (formData.get('notas') as string) || null
 
-  if (!clienteId) throw new Error('Cliente obrigatório')
-  if (!moradaObraId) throw new Error('Morada de obra obrigatória')
+    if (!clienteId) {
+      return { success: false, error: 'Cliente obrigatório' } satisfies ProcessoActionResult
+    }
+    if (!moradaObraId) {
+      return { success: false, error: 'Morada de obra obrigatória' } satisfies ProcessoActionResult
+    }
 
-  const { error } = await supabase
-    .from('processos')
-    .update({ cliente_id: clienteId, morada_obra_id: moradaObraId, notas })
-    .eq('id', id)
+    const { error } = await supabase
+      .from('processos')
+      .update({ cliente_id: clienteId, morada_obra_id: moradaObraId, notas })
+      .eq('id', id)
 
-  if (error) throw new Error(error.message)
+    if (error) return { success: false, error: error.message } satisfies ProcessoActionResult
 
-  revalidatePath(`/processos/${id}`)
-  revalidatePath('/processos')
+    revalidatePath(`/processos/${id}`)
+    revalidatePath('/processos')
+    return { success: true, id } satisfies ProcessoActionResult
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erro ao atualizar processo',
+    } satisfies ProcessoActionResult
+  }
 }
 
 export async function eliminarProcesso(id: string) {
