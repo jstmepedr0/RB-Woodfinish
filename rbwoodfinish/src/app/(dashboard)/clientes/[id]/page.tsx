@@ -128,12 +128,6 @@ export default async function ClienteDetalhePage({
                     <p className="text-sm text-stone-700">{cliente.notas}</p>
                   </div>
                 )}
-                {cliente.notas_obra && (
-                  <div className="space-y-1 sm:col-span-2">
-                    <p className="text-xs text-stone-500 uppercase tracking-wider">Notas de Obra</p>
-                    <p className="text-sm text-stone-700 whitespace-pre-line">{cliente.notas_obra}</p>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>

@@ -22,6 +22,38 @@ interface ClienteFormProps {
   cliente?: Cliente
 }
 
+const PHONE_PREFIXES = [
+  { value: '+351', label: 'Portugal (+351)', minDigits: 9, maxDigits: 9 },
+  { value: '+34', label: 'Espanha (+34)', minDigits: 9, maxDigits: 9 },
+  { value: '+33', label: 'França (+33)', minDigits: 9, maxDigits: 9 },
+  { value: '+44', label: 'Reino Unido (+44)', minDigits: 9, maxDigits: 10 },
+]
+
+function digitsOnly(value: string) {
+  return value.replace(/\D/g, '')
+}
+
+function splitPhoneNumber(value: string | null | undefined) {
+  const raw = value?.trim() ?? ''
+  const normalized = raw.replace(/\s+/g, '')
+
+  const match = [...PHONE_PREFIXES]
+    .sort((a, b) => b.value.length - a.value.length)
+    .find((prefix) => normalized.startsWith(prefix.value))
+
+  if (!match) {
+    return {
+      prefix: '+351',
+      number: digitsOnly(normalized),
+    }
+  }
+
+  return {
+    prefix: match.value,
+    number: digitsOnly(normalized.slice(match.value.length)),
+  }
+}
+
 export function ClienteForm({ cliente }: ClienteFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -30,13 +62,48 @@ export function ClienteForm({ cliente }: ClienteFormProps) {
   const [tipo, setTipo] = useState<'casual_b2c' | 'profissional_b2b'>(
     cliente?.tipo ?? 'casual_b2c'
   )
+  const [nif, setNif] = useState(digitsOnly(cliente?.nif ?? ''))
+  const [phonePrefix, setPhonePrefix] = useState(splitPhoneNumber(cliente?.contacto_telefone).prefix)
+  const [phoneNumber, setPhoneNumber] = useState(splitPhoneNumber(cliente?.contacto_telefone).number)
   const isEdit = !!cliente
+  const phoneConfig = PHONE_PREFIXES.find((prefix) => prefix.value === phonePrefix) ?? PHONE_PREFIXES[0]
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
 
     const formData = new FormData(e.currentTarget)
+    const sanitizedNif = digitsOnly(nif)
+    const sanitizedPhone = digitsOnly(phoneNumber)
+
+    if (sanitizedNif && sanitizedNif.length !== 9) {
+      setError('O NIF deve ter exatamente 9 números.')
+      return
+    }
+
+    if (tipo === 'profissional_b2b' && !(formData.get('responsavel') as string)?.trim()) {
+      setError('O responsável é obrigatório para cliente profissional.')
+      return
+    }
+
+    if (
+      sanitizedPhone &&
+      (sanitizedPhone.length < phoneConfig.minDigits || sanitizedPhone.length > phoneConfig.maxDigits)
+    ) {
+      setError(
+        phoneConfig.minDigits === phoneConfig.maxDigits
+          ? `O número deve ter exatamente ${phoneConfig.maxDigits} dígitos para ${phoneConfig.label}.`
+          : `O número deve ter entre ${phoneConfig.minDigits} e ${phoneConfig.maxDigits} dígitos para ${phoneConfig.label}.`
+      )
+      return
+    }
+
+    formData.set('nif', sanitizedNif)
+    formData.set(
+      'contacto_telefone',
+      sanitizedPhone ? `${phonePrefix}${sanitizedPhone}` : ''
+    )
+
     moradas.forEach((m, idx) => {
       formData.append(`morada_${idx}`, m.morada)
       formData.append(`morada_desc_${idx}`, m.descricao)
@@ -133,19 +200,46 @@ export function ClienteForm({ cliente }: ClienteFormProps) {
               <Input
                 id="nif"
                 name="nif"
-                defaultValue={cliente?.nif ?? ''}
+                value={nif}
+                inputMode="numeric"
+                maxLength={9}
+                pattern="\d{9}"
                 placeholder="123456789"
+                onChange={(e) => setNif(digitsOnly(e.target.value).slice(0, 9))}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="contacto_telefone">Contacto (Telefone)</Label>
-              <Input
-                id="contacto_telefone"
-                name="contacto_telefone"
-                defaultValue={cliente?.contacto_telefone ?? ''}
-                placeholder="+351 912 345 678"
-              />
+              <div className="flex gap-2">
+                <div className="w-44 shrink-0">
+                  <Select value={phonePrefix} onValueChange={(value) => setPhonePrefix(value ?? '+351')}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PHONE_PREFIXES.map((prefix) => (
+                        <SelectItem key={prefix.value} value={prefix.value}>
+                          {prefix.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Input
+                  id="contacto_telefone"
+                  value={phoneNumber}
+                  inputMode="numeric"
+                  maxLength={phoneConfig.maxDigits}
+                  placeholder="912345678"
+                  onChange={(e) => setPhoneNumber(digitsOnly(e.target.value).slice(0, phoneConfig.maxDigits))}
+                />
+              </div>
+              <p className="text-xs text-stone-500">
+                {phoneConfig.minDigits === phoneConfig.maxDigits
+                  ? `${phoneConfig.maxDigits} dígitos`
+                  : `${phoneConfig.minDigits} a ${phoneConfig.maxDigits} dígitos`}
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -178,17 +272,6 @@ export function ClienteForm({ cliente }: ClienteFormProps) {
               defaultValue={cliente?.notas ?? ''}
               placeholder="Notas adicionais sobre o cliente..."
               rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notas_obra">Notas de Obra + Descrição</Label>
-            <Textarea
-              id="notas_obra"
-              name="notas_obra"
-              defaultValue={cliente?.notas_obra ?? ''}
-              placeholder="Descrição da obra, contexto, divisões, medições ou observações relevantes..."
-              rows={4}
             />
           </div>
 

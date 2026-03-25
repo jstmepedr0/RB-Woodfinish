@@ -11,6 +11,16 @@ export interface ClienteActionResult {
   error?: string
 }
 
+function digitsOnly(value: string) {
+  return value.replace(/\D/g, '')
+}
+
+function normalizePhone(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  return `+${trimmed.replace(/[^\d]/g, '')}`
+}
+
 export async function criarCliente(formData: FormData) {
   try {
     const profile = await requireRole(['admin', 'comercial'])
@@ -20,6 +30,20 @@ export async function criarCliente(formData: FormData) {
       tipo === 'profissional_b2b'
         ? ((formData.get('responsavel') as string) || null)
         : null
+    const nif = digitsOnly((formData.get('nif') as string) || '')
+    const contactoTelefone = normalizePhone((formData.get('contacto_telefone') as string) || '')
+
+    if (nif && nif.length !== 9) {
+      return { success: false, error: 'O NIF deve ter exatamente 9 números.' } satisfies ClienteActionResult
+    }
+
+    if (tipo === 'profissional_b2b' && !responsavel?.trim()) {
+      return { success: false, error: 'O responsável é obrigatório para cliente profissional.' } satisfies ClienteActionResult
+    }
+
+    if (contactoTelefone && !/^\+\d{11,14}$/.test(contactoTelefone)) {
+      return { success: false, error: 'O contacto telefónico é inválido.' } satisfies ClienteActionResult
+    }
 
     const data = {
       data_registo:
@@ -27,12 +51,11 @@ export async function criarCliente(formData: FormData) {
       tipo,
       nome: formData.get('nome') as string,
       responsavel,
-      nif: (formData.get('nif') as string) || null,
-      contacto_telefone: (formData.get('contacto_telefone') as string) || null,
+      nif: nif || null,
+      contacto_telefone: contactoTelefone || null,
       email: (formData.get('email') as string) || null,
       morada_sede: (formData.get('morada_sede') as string) || null,
       notas: (formData.get('notas') as string) || null,
-      notas_obra: (formData.get('notas_obra') as string) || null,
       comercial_responsavel_id: profile.id,
     }
 
@@ -85,6 +108,20 @@ export async function atualizarCliente(id: string, formData: FormData) {
       tipo === 'profissional_b2b'
         ? ((formData.get('responsavel') as string) || null)
         : null
+    const nif = digitsOnly((formData.get('nif') as string) || '')
+    const contactoTelefone = normalizePhone((formData.get('contacto_telefone') as string) || '')
+
+    if (nif && nif.length !== 9) {
+      return { success: false, error: 'O NIF deve ter exatamente 9 números.' } satisfies ClienteActionResult
+    }
+
+    if (tipo === 'profissional_b2b' && !responsavel?.trim()) {
+      return { success: false, error: 'O responsável é obrigatório para cliente profissional.' } satisfies ClienteActionResult
+    }
+
+    if (contactoTelefone && !/^\+\d{11,14}$/.test(contactoTelefone)) {
+      return { success: false, error: 'O contacto telefónico é inválido.' } satisfies ClienteActionResult
+    }
 
     const data = {
       data_registo:
@@ -92,12 +129,11 @@ export async function atualizarCliente(id: string, formData: FormData) {
       tipo,
       nome: formData.get('nome') as string,
       responsavel,
-      nif: (formData.get('nif') as string) || null,
-      contacto_telefone: (formData.get('contacto_telefone') as string) || null,
+      nif: nif || null,
+      contacto_telefone: contactoTelefone || null,
       email: (formData.get('email') as string) || null,
       morada_sede: (formData.get('morada_sede') as string) || null,
       notas: (formData.get('notas') as string) || null,
-      notas_obra: (formData.get('notas_obra') as string) || null,
     }
 
     const { error } = await supabase
